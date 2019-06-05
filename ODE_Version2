@@ -1,0 +1,65 @@
+#include<bits/stdc++.h>
+#define eps 1e-11
+using namespace std;
+double m = 3;
+double f(double x, double y)
+{
+	return sqrt(abs(2 * cos(y) + m));
+}
+/**
+x, y: Init val
+h: step length.
+*/
+double Euler(double x, double y, double h)
+{
+	double Yn = y + h * f(x, y);
+}
+double MEuler(double x, double y, double h)
+{
+	double Yn = y + h * f(x + h / 2.0, y + h / 2.0 * f(x, y));
+	return Yn;
+}
+double RK2(double x, double y, double h)
+{
+	double Yn = y + h / 2.0 * (f(x, y) + f(x + h, y + h * f(x, y)));
+	return Yn;
+}
+double RK4(double x, double y, double h)
+{
+	double K1 = f(x, y);
+	double K2 = f(x + h / 2.0, y + h / 2.0 * K1);
+	double K3 = f(x + h / 2.0, y + h / 2.0 * K2);
+	double K4 = f(x + h, y + h * K3);
+	double Yn = y + h / 6.0 * (K1 + 2.0 * K2 + 2.0 * K3 + K4);
+	return Yn;
+}
+
+int main()
+{
+	freopen("1.txt", "w", stdout);
+	double x = 0,y10 = 0, y11 = y10, y12 = y10, y13 = y10, h = 0.01;
+	cout << "x\tEuler\tM-Euler\tRK2\tRK4\tSTEP" << endl;
+	double y01[5000] = {0}, y21[5000] = {0}, y31[5000] = {0}, y41[5000] = {0};
+	for(int i = 0; i < 5000; ++i)
+	{
+		y41[i] = RK4(x, y11, h);
+		y21[i] = RK2(x, y12, h);
+		y31[i] = MEuler(x, y13, h);
+		y01[i] = Euler(x, y10, h);
+		x += h; 
+		//printf("%.5lf\t%.5lf\t%.5lf\t%.5lf\t%.5lf\n", x, y10, y13 , y12, y11);
+	}
+	double k = y01[4999] / x;
+	cerr << k;
+	x = 0;
+	for(int i = 0; i < 5000; ++i)
+	{
+		y41[i] -= k * x;
+		y21[i] -= k * x;
+		y31[i] -= k * x;
+		y01[i] -= k * x;
+		x += h; 
+		printf("%.5lf\t%.5lf\t%.5lf\t%.5lf\t%.5lf\t%.5lf\n", 0, y01[i], y31[i], y21[i], y41[i], k * x);
+	}
+	return 0;
+}
