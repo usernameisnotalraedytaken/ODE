@@ -1,76 +1,84 @@
 #include<bits/stdc++.h>
-#define step 1e-9
+#define step 1e-5 
 #define eps 1e-11
 using namespace std;
+struct pix
+{
+	double x;
+	double y;
+};
 double f(double x, double y)
 {
-	return x * x - 2;
+	return y;
 }
 double g(double x)
 {
-	return 4/(1 + x * x); 
+	return cos(x); 
 }
-double df(double x, double y, char mode)
+double df(double f(double), double x)
 {
-	switch(mode)
-	{
-		case 'x':
-		{
-			return (f(x + step, y) - f(x - step, y)) / (2.0 * step);
-		}
-		case 'y':
-		{
-			return (f(x, y + step) - f(x, y - step)) / (2.0 * step);
-		}
-		case 'd':
-		{
-			return df(x, y, 'x') + df(x, y, 'y');
-		}
-	}
+	return (f(x + step) - f(x - step)) / (2.0 * step);
 }
 
-double df4(double x, double y, char mode)
+double df4(double f(double), double x)
 {
-	switch(mode)
-	{
-		case 'x':
-		{
-			return (f(x - step, y) - 8.0 * f(x - step / 2.0, y) + 8.0 * f(x + step / 2.0, y) - f(x + step, y)) / (6.0 * step);
-		}
-		case 'y':
-		{
-			return (f(x, y - step) - 8.0 * f(x, y - step / 2.0) + 8.0 * f(x, y + step / 2.0) - f(x, y + step)) / (6.0 * step);
-		}
-		case 'd':
-		{
-			return df(x, y, 'x') + df(x, y, 'y');
-		}
-	}
+	return (f(x - step) - 8.0 * f(x - step / 2.0) + 8.0 * f(x + step / 2.0) - f(x + step)) / (6.0 * step);
 }
-double NewtonSolve(double x0)
+double Newton(double g(double), double x0)
 {
 	double x1;
-	while(f(x0, 0) > step)
+	while(abs(g(x0)) > eps)
 	{
-		x1 = x0 - f(x0,0) / df(x0, 0, 'x');
+		x1 = x0 - g(x0) / df(g, x0);
 		x0 = x1;
 	}
 	return x0;
 }
-double intt_simpson_slice(double x1, double x2, double x3, double h)
+double intt_simpson_slice(double g(double), double x1, double x2, double x3, double h)
 {
 	return h / 3.0 * (g(x1) + 4.0 * g(x2) + g(x3));
 }
-double SimpsonIntt(double x1, double x2, int t)
+double Simpson(double g(double), double x1, double x2, int t)
 {
 	double h = (x1 - x2) / (2.0 * t);
 	double sum = 0, x = x1;
 	for(int i = 0; i < t; ++i)
 	{
-		sum += intt_simpson_slice(x, x + h, x + h + h, h);
+		sum += intt_simpson_slice(g, x, x + h, x + h + h, h);
 		x += 2.0 * h; 
 	}
 	return sum;
+}
+double Int(double g(double), double x1, double x2, double IntMethod(double(*)(double), double, double, int))
+{
+	return IntMethod(g, x1, x2, 100);
+}
+double Dif(double f(double), double x, double DifMethod(double(*)(double), double))
+{
+	return DifMethod(f, x);
+}
+double Sol(double g(double), double x0, double Method(double(*)(double), double))
+{
+	return Method(g,x0);
+}
+double _l_(pix *x, double f(double), double *a, int len)
+{
+	if(len == 1)
+		return f(x, a[0]);
+	double *b = (double*)malloc(sizeof(a)), *c = (double*)malloc(sizeof(a));
+	for(int i = 0; i < len; ++i)
+	{
+		if(i != len - 1)
+			b[i] = a[i];
+		if(i != 0)
+			c[i] = a[i];
+	}
+	return (_l_(f, c, len - 1) - _l_(f, b, len - 1)) / (a[len - 1]- a[0]);
+}
+double fp(pix *a, int len, double in)
+double Val(pix *a, int len)
+{
+	
 }
 /**
 x, y: Init val
@@ -99,30 +107,10 @@ double RK4(double x, double y, double h)
 	double Yn = y + h / 6.0 * (K1 + 2.0 * K2 + 2.0 * K3 + K4);
 	return Yn;
 }
-double RKF45(double x, double y, double t, double h, double &hp)
-{
-	double x0 = x;
-	double s1 = f(x,y);
-	double s2 = f(x + h / 4.0, y + h * s1 / 4.0);
-	double s3 = f(x + 3.0 * h / 8, y + 3.0 * h * s1 / 32.0 + 9.0 * h * s2 / 32.0);
-	double s4 = f(x + 12.0 * h / 13.0, y + 1932.0 * h * s1 / 2197.0 - 7200.0 * h * s2 / 2197.0 + 7296.0 * h * s3 / 2197.0);
-	double s5 = f(x + h, y + 439.0 * h * s1 / 216.0 - 8.0 * h * s2 + 3680.0 * h * s3 / 513.0 - 845.0 * h * s4 / 4104.0);
-	double s6 = f(x + h / 2.0, y - 8.0 * h * s1 / 27.0 + 2.0 * h * s2 - 3544.0 * h * s3 / 2565.0 + 1859.0 * h * s4 / 4104.0 - 11.0 * s5 / 40.0);
-	double yp1 = y + h * (25.0 * s1 + 1408.0 * s3 / 2565.0 + 2197.0 * s4 / 4104 - s5 / 5.0);
-	double yp2 = y + h * (16.0 * s1 / 135.0 + 6656.0 * s3 / 12825.0 + 28561.0 * s4 / 56430.0 - 9.0 * s5 / 50.0 + 2.0 * s6 / 55.0); 
-	double err = abs(yp1 - yp2) / abs(yp1);
-	if(err < t)
-		return yp2;
-	else
-	{
-		hp = 0.8 * pow((t * 1.0 / err), 0.2) * h;
-		return RKF45(x, y, t, hp, hp);
-	}
-}
 double ODE(double x0, double y0, double target, double odesloution(double, double, double))
 {
 	double y = y0, x = x0;
-	for(int i = 0; i <= (int)1e9 * target; ++i)
+	for(int i = 0; i <= (int)1e5 * target; ++i)
 	{
 		y = odesloution(x, y, step);
 		x += step;
@@ -132,6 +120,6 @@ double ODE(double x0, double y0, double target, double odesloution(double, doubl
 
 int main()
 {
-	printf("%.10lf", NewtonSolve(1));
+	printf("%.10lf", Newton(g, 1));
 	return 0;
 }
